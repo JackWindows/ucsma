@@ -7,6 +7,7 @@
 #define MAX_STEP 10000000
 int main() {
 	int value, ret, count = 0, max_count = 0;
+	int gt6000 = 0, lt250 = 0, bt250_6000 = 0;
 
 	ret = gpioSetup();
 	if (ret == -1) {
@@ -30,6 +31,12 @@ int main() {
 				if (count > max_count) {
 					max_count = count;
 				}
+				if (count > 6000)
+					gt6000++;
+				else if (count < 250)
+					lt250++;
+				else
+					bt250_6000++;
 				count = 0;
 			}
 		}
@@ -38,7 +45,8 @@ int main() {
 
 	double time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
 	printf("\n");
-	printf("longest consectuive high voltage: %d\n", max_count);
+	printf("longest consecutive high voltage: %d\n", max_count);
+	printf("consecutive high voltage <250, 250-6000, >6000: %d, %d, %d\n", lt250, bt250_6000, gt6000);
 	printf("total running time for %d rounds of polling: %fs\n", MAX_STEP, time_spent);
 	return 0;
 }
