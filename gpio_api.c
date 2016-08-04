@@ -1,4 +1,13 @@
 #include "gpio_api.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <string.h>
+#include <sys/mman.h>
+
+#define GPIO_ADDR 0x18040000	// base address
+#define GPIO_BLOCK 48	// memory block size
 
 void _gpioExport(int gpio) {
 	int fd;
@@ -62,3 +71,55 @@ int _gpioGet(int gpio) {
 	}
 }
 
+volatile unsigned long *gpio_address;
+
+int gpioSetup() {
+	int m_mfd;
+	if ((m_mfd = open("/dev/mem", O_RDWR )) < 0 ) {
+		return -1;
+	}
+	gpio_address = (unsigned long*)mmap(NULL, GPIO_BLOCK, PROT_READ|PROT_WRITE, MAP_SHARED, m_mfd, GPIO_ADDR);
+	close(m_mfd);
+
+	if (gpio_address == MAP_FAILED) {
+		return -2;
+	}
+
+	return 0;
+}
+
+void gpioDirection(int gpio, int direction) {
+	unsigned long value = *(gpio_address + 0);	//obtain current settings
+	if (direction == 1) {
+		value |= (1 << gpio);	//set bit to 1
+	}
+	else {
+		value &= ~(1 << gpio);	//clear bit
+	}
+	*(gpio_address + 0) = value;
+}
+
+void gpioSet(int gpio, int target_value) {
+	unsigned long value = *(gpio_address + 2);	//obtain current settings
+	if (target_value == 1) {
+		value |= (1 << gpio);	//set bit to 1
+	}
+	else {
+		value &= ~(1 << gpio);	//clear bit
+	}
+	*(gpio_address + 2) = value;
+}
+
+void gpioSet2(int gpio, int target_value) {	//another way to set gpio value
+	if (target_value == 1) {
+		*(gpio_address + 3) = (1 << gpio);
+	}
+	else {
+		*(gpio_address + 4) = (1 << gpio);
+	}
+}
+
+int gpioGet(int gpio) {
+	unsigned long value = *(gpio_address + 1);
+	return ((value >> gpio) & 1);
+}
