@@ -88,7 +88,7 @@ int gpioSetup() {
 	return 0;
 }
 
-void gpioDirection(int gpio, int direction) {
+void gpioDirection(int gpio, int direction) {	// 1 for output, 0 for input
 	unsigned long value = *(gpio_address + 0);	//obtain current settings
 	if (direction == 1) {
 		value |= (1 << gpio);	//set bit to 1
