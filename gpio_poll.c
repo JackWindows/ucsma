@@ -4,10 +4,8 @@
 #include "gpio_api.h"
 
 #define GPIO_INPUT 19
-#define MAX_STEP 10000000
 int main() {
-	int value, ret, count = 0, max_count = 0;
-	int gt6000 = 0, lt250 = 0, bt250_6000 = 0;
+	int value, last_value, ret, step = 0, count = 0; 
 
 	ret = gpioSetup();
 	if (ret == -1) {
@@ -19,34 +17,23 @@ int main() {
 		exit(EXIT_FAILURE);
 	}
 
-	clock_t begin = clock();
-	for (int i = 0; i < MAX_STEP; i++) {
+	clock_t end, begin = clock();
+	last_value = gpioGet(GPIO_INPUT);
+	while (1) {
 		value = gpioGet(GPIO_INPUT);
-		if (value == 1) {
-			count++;
+		if (value != last_value) {
+			if (value == 0) {
+				end = clock();
+				printf("value changed from %d to %d after %4d count at %f, step %6d\n", last_value, value, count, (double)(end - begin) / CLOCKS_PER_SEC, step);
+			}
+			last_value = value;
+			count = 0;
 		}
 		else {
-			if (count > 0) {
-				printf("%d consecutive high voltage detected\n", count);
-				if (count > max_count) {
-					max_count = count;
-				}
-				if (count > 6000)
-					gt6000++;
-				else if (count < 250)
-					lt250++;
-				else
-					bt250_6000++;
-				count = 0;
-			}
+			count++;
 		}
+		step++;
 	}
-	clock_t end = clock();
 
-	double time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
-	printf("\n");
-	printf("longest consecutive high voltage: %d\n", max_count);
-	printf("consecutive high voltage <250, 250-6000, >6000: %d, %d, %d\n", lt250, bt250_6000, gt6000);
-	printf("total running time for %d rounds of polling: %fs\n", MAX_STEP, time_spent);
 	return 0;
 }
