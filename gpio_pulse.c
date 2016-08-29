@@ -5,8 +5,16 @@
 
 #define GPIO_OUTPUT 20
 
-int main() {
+int main(int argc, char *argv[]) {
 	int ret;
+	int gpio_output_pin = GPIO_OUTPUT;
+
+	if (argc > 1)
+		gpio_output_pin = atoi(argv[1]);
+	else {
+		fprintf(stderr, "Usage: %s <gpio output pin>\n", argv[0]);
+		exit(EXIT_FAILURE);
+	}
 	
 	ret = gpioSetup();
 	if (ret == -1) {
@@ -18,12 +26,12 @@ int main() {
 		exit(EXIT_FAILURE);
 	}
 
-	gpioDirection(GPIO_OUTPUT, 1);
+	gpioDirection(gpio_output_pin, 1);
 
 	while (1) {
-		gpioSet(GPIO_OUTPUT, 1);
+		gpioSet(gpio_output_pin, 1);
 		usleep(100);
-		gpioSet(GPIO_OUTPUT, 0);
+		gpioSet(gpio_output_pin, 0);
 		usleep(1000000);
 	}
 
