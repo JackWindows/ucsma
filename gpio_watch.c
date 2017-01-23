@@ -28,8 +28,10 @@ int main(int argc, char *argv[]) {
 	int count = 0;
 	while (1) {
 		if (gpioGet(gpio_port)) {
-			printf("get postive signal(1) after %d 0\n", count);
-			count = 0;
+			if (count > 0) {
+				printf("get postive signal(1) after %d 0\n", count);
+				count = 0;
+			}
 		}
 		else {
 			count++;
