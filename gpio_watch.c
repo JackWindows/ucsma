@@ -1,6 +1,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <sys/time.h>
 #include "gpio_api.h"
 
 int main(int argc, char *argv[]) {
@@ -26,10 +27,14 @@ int main(int argc, char *argv[]) {
 	gpioDirection(gpio_port, 0);
 
 	int count = 0;
+	struct timeval tv;
+	struct timezone tz;
+
 	while (1) {
 		if (gpioGet(gpio_port)) {
 			if (count > 0) {
-				printf("get postive signal(1) after %d 0\n", count);
+				gettimeofday(&tv, &tz);
+				printf("[%ld.%06ld]get postive signal(1) after %d count\n", tv.tv_sec, tv.tv_usec, count);
 				count = 0;
 			}
 		}
