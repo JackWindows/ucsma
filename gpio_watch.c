@@ -24,8 +24,6 @@ int main(int argc, char *argv[]) {
 
 	gpio_port = atoi(argv[1]);
 
-	gpioDirection(gpio_port, 0);
-
 	int count = 0;
 	struct timeval tv;
 	struct timezone tz;
