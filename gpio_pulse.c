@@ -3,16 +3,18 @@
 #include <stdio.h>
 #include "gpio_api.h"
 
-#define GPIO_OUTPUT 20
-
 int main(int argc, char *argv[]) {
 	int ret;
-	int gpio_output_pin = GPIO_OUTPUT;
+	int gpio_output_pin;
+	int sleep_delay = 1000;
 
-	if (argc > 1)
+	if (argc > 1) {
 		gpio_output_pin = atoi(argv[1]);
+		if (argc > 2)
+			sleep_delay = atoi(argv[2]);
+	}
 	else {
-		fprintf(stderr, "Usage: %s <gpio output pin>\n", argv[0]);
+		fprintf(stderr, "Usage: %s <gpio output pin> [sleep_delay]\n", argv[0]);
 		exit(EXIT_FAILURE);
 	}
 	
@@ -30,9 +32,9 @@ int main(int argc, char *argv[]) {
 
 	while (1) {
 		gpioSet(gpio_output_pin, 1);
-		usleep(100);
+		usleep(1);
 		gpioSet(gpio_output_pin, 0);
-		usleep(1000000);
+		usleep(sleep_delay);
 	}
 
 	return 0;
