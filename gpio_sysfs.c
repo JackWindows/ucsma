@@ -3,89 +3,31 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <string.h>
-
-void gpioExport(int gpio) {
-	int fd;
-	char buf[255];
-	fd = open("/sys/class/gpio/export", O_WRONLY);
-	sprintf(buf, "%d", gpio);
-	write(fd, buf, strlen(buf));
-	close(fd);
-}
-
-void gpioUnexport(int gpio) {
-	int fd;
-	char buf[255];
-	fd = open("/sys/class/gpio/unexport", O_WRONLY);
-	sprintf(buf, "%d", gpio);
-	write(fd, buf, strlen(buf));
-	close(fd);
-}
-
-void gpioDirection(int gpio, int direction) {	// 1 for output, 0 for input
-	int fd;
-	char buf[255];
-
-	sprintf(buf, "/sys/class/gpio/gpio%d/direction", gpio);
-	fd = open(buf, O_WRONLY);
-
-	if (direction) {
-		write(fd, "out", 3);
-	}
-	else {
-		write(fd, "in", 2);
-	}
-	close(fd);
-}
-
-void gpioSet(int gpio, int value) {
-	int fd;
-	char buf[255];
-
-	sprintf(buf, "/sys/class/gpio/gpio%d/value", gpio);
-	fd = open(buf, O_WRONLY);
-	sprintf(buf, "%d", value);
-	write(fd, buf, 1);
-	close(fd);
-}
-
-int gpioGet(int gpio) {
-	int fd;
-	char buf[255];
-	char value;
-
-	sprintf(buf, "/sys/class/gpio/gpio%d/value", gpio);
-	fd = open(buf, O_RDONLY);
-	read(fd, &value, 1);
-	close(fd);
-	if (value == '0') {
-		return 0;
-	}
-	else {
-		return 1;
-	}
-}
+#include "gpio_api.h"
 
 int main(int argc, char *argv[]) {
 	char action[255];
 	int gpio_port;
+	int ret;
 
 	if (argc - 1 < 2) {
-		fprintf(stderr, "Usage: %s action gpio_port\naction: export, unexport, set_direction\n", argv[0]);
+		fprintf(stderr, "Usage: %s action gpio_port\naction: set_direction, get, set\n", argv[0]);
 		exit(EXIT_FAILURE);
 	}
 	strcpy(action, argv[1]);
 	gpio_port = atoi(argv[2]);
 
-	if (strcmp(action, "export") == 0) {
-		gpioExport(gpio_port);
-		printf("gpio %d exported\n", gpio_port);
+	ret = gpioSetup();
+	if (ret == -1) {
+		printf("open /dev/mem failed\n");
+		exit(EXIT_FAILURE);
 	}
-	else if (strcmp(action, "unexport") == 0) {
-		gpioUnexport(gpio_port);
-		printf("gpio %d unexported\n", gpio_port);
+	else if (ret == -2) {
+		printf("MAP_FAILED\n");
+		exit(EXIT_FAILURE);
 	}
-	else if (strcmp(action, "set_direction") == 0) {
+
+	if (strcmp(action, "set_direction") == 0) {
 		if (argc - 1 < 3) {
 			fprintf(stderr, "Usage: %s set_direction gpio_port in|out\n", argv[0]);
 			exit(EXIT_FAILURE);
